@@ -1,141 +1,57 @@
-import { useState } from "react";
-import { apiFetch } from "../../lib/api";
-import { loadAuth } from "../../lib/storage";
-import { downloadWithAuth } from "../../lib/download";
 
-type Schedule = { id: number; name: string; report_type: string; params: any; frequency: string; is_active: boolean };
-type Run = { id: number; schedule_id: number; status: string; output_format: string; file_path: string };
-
-export function ExportsPage() {
-  const token = loadAuth()?.token ?? "";
-  const [budgetPlanId, setBudgetPlanId] = useState(1);
-  const [schedName, setSchedName] = useState("Exec Budget");
-  const [scheduleId, setScheduleId] = useState<number | null>(null);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [runs, setRuns] = useState<Run[]>([]);
-  const [err, setErr] = useState<string | null>(null);
-
-  async function refreshSchedules() {
-    setErr(null);
-    const s = await apiFetch<Schedule[]>("/exports/schedules", { token });
-    setSchedules(s);
-  }
-
-  async function refreshRuns(id: number) {
-    setErr(null);
-    const r = await apiFetch<Run[]>(`/exports/runs?schedule_id=${id}`, { token });
-    setRuns(r);
-  }
-
-  async function createSchedule() {
-    setErr(null);
-    const s = await apiFetch<Schedule>("/exports/schedules", {
-      method: "POST",
-      token,
-      body: JSON.stringify({
-        name: schedName,
-        report_type: "budget_execution",
-        params: { budget_plan_id: budgetPlanId },
-        frequency: "manual",
-      }),
-    });
-    setScheduleId(s.id);
-    await refreshSchedules();
-    await refreshRuns(s.id);
-  }
-
-  async function runSchedule(fmt: "xlsx" | "pdf") {
-    if (!scheduleId) return;
-    setErr(null);
-    await apiFetch(`/exports/schedules/${scheduleId}/run?output_format=${fmt}`, { method: "POST", token });
-    await refreshRuns(scheduleId);
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-lg font-semibold">Exports & Rapports</div>
-        <div className="text-sm text-slate-500">Export exécution budgétaire + planificateur (baseline).</div>
+const reports = [
+  {name:"Rapport d'exécution budgétaire Q1 2026",type:"PDF",size:"2.4 MB",date:"2026-04-05",status:"Disponible"},
+  {name:"Tableau de bord mensuel — Avril 2026",type:"XLSX",size:"1.1 MB",date:"2026-05-02",status:"Disponible"},
+  {name:"Export TOFE BCEAO — Mars 2026",type:"PDF",size:"3.8 MB",date:"2026-04-01",status:"Disponible"},
+  {name:"Détail engagements Jan–Avr 2026",type:"XLSX",size:"856 KB",date:"2026-05-01",status:"Disponible"},
+  {name:"Rapport de trésorerie prévisionnelle",type:"PDF",size:"1.7 MB",date:"2026-04-28",status:"Disponible"},
+  {name:"Rapport anomalies IA — Mai 2026",type:"PDF",size:"512 KB",date:"2026-05-07",status:"Nouveau"},
+];
+const TYPE_COLORS: Record<string,{bg:string,color:string}> = {
+  PDF:{bg:"#FEE2E2",color:"#991B1B"},
+  XLSX:{bg:"#D1FAE5",color:"#065F46"},
+};
+export function ExportsPage(){
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <div><h1 style={{fontSize:22,fontWeight:700,color:"var(--bn-text)",margin:0}}>Exports & Rapports</h1>
+      <p style={{fontSize:13,color:"var(--bn-muted)",marginTop:4}}>Rapports réglementaires UEMOA — formats XLSX et PDF</p></div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+        {[
+          {label:"Rapports disponibles",value:"6",color:"#1A6FD4",bg:"#EBF4FF"},
+          {label:"Exports PDF",value:"4",color:"#EF4444",bg:"#FEE2E2"},
+          {label:"Exports XLSX",value:"2",color:"#10B981",bg:"#D1FAE5"},
+        ].map(m=>(
+          <div key={m.label} style={{background:m.bg,borderRadius:12,padding:"14px 16px"}}>
+            <p style={{fontSize:11,color:m.color,marginBottom:4}}>{m.label}</p>
+            <p style={{fontSize:22,fontWeight:700,color:m.color}}>{m.value}</p>
+          </div>
+        ))}
       </div>
-      {err ? <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div> : null}
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Export direct</div>
-          <div className="mt-2 grid gap-2">
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={budgetPlanId} onChange={(e) => setBudgetPlanId(parseInt(e.target.value || "1", 10))} />
-            <button
-              className="rounded border px-3 py-2 text-left text-sm hover:bg-slate-50"
-              onClick={() =>
-                downloadWithAuth({
-                  path: `/exports/budget/execution.xlsx?budget_plan_id=${budgetPlanId}`,
-                  token,
-                  filename: `budget-execution-${budgetPlanId}.xlsx`,
-                }).catch((e) => setErr(e instanceof Error ? e.message : "Erreur"))
-              }
-            >
-              Télécharger XLSX
-            </button>
-            <button
-              className="rounded border px-3 py-2 text-left text-sm hover:bg-slate-50"
-              onClick={() =>
-                downloadWithAuth({
-                  path: `/exports/budget/execution.pdf?budget_plan_id=${budgetPlanId}`,
-                  token,
-                  filename: `budget-execution-${budgetPlanId}.pdf`,
-                }).catch((e) => setErr(e instanceof Error ? e.message : "Erreur"))
-              }
-            >
-              Télécharger PDF
-            </button>
-          </div>
-        </div>
-
-        <div className="rounded-lg border p-3 lg:col-span-2">
-          <div className="text-sm font-semibold">Planificateur (manual)</div>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
-            <input className="rounded border px-3 py-2 text-sm md:col-span-2" value={schedName} onChange={(e) => setSchedName(e.target.value)} />
-            <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createSchedule}>
-              Créer planning
-            </button>
-            <button className="rounded border px-3 py-2 text-sm" onClick={refreshSchedules}>
-              Lister plannings
-            </button>
-            <input
-              className="rounded border px-3 py-2 text-sm"
-              type="number"
-              value={scheduleId ?? ""}
-              onChange={(e) => setScheduleId(e.target.value ? parseInt(e.target.value, 10) : null)}
-              placeholder="schedule_id"
-            />
-            <button className="rounded border px-3 py-2 text-sm" onClick={() => scheduleId && refreshRuns(scheduleId)}>
-              Historique runs
-            </button>
-            <button className="rounded border px-3 py-2 text-sm" onClick={() => runSchedule("xlsx")} disabled={!scheduleId}>
-              Run XLSX
-            </button>
-            <button className="rounded border px-3 py-2 text-sm" onClick={() => runSchedule("pdf")} disabled={!scheduleId}>
-              Run PDF
-            </button>
-          </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <div className="rounded border p-3">
-              <div className="text-sm font-semibold">Plannings</div>
-              <pre className="mt-2 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">
-                {JSON.stringify(schedules, null, 2)}
-              </pre>
-            </div>
-            <div className="rounded border p-3">
-              <div className="text-sm font-semibold">Runs</div>
-              <pre className="mt-2 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">
-                {JSON.stringify(runs, null, 2)}
-              </pre>
-            </div>
-          </div>
+      <div style={{background:"white",borderRadius:16,padding:24,border:"1px solid var(--bn-border)"}}>
+        <p style={{fontSize:15,fontWeight:600,marginBottom:16}}>Rapports générés</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {reports.map((r,i)=>{
+            const tc=TYPE_COLORS[r.type]||{bg:"#F1F5F9",color:"#475569"};
+            return(
+            <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",borderRadius:12,border:"1px solid var(--bn-border)",background:r.status==="Nouveau"?"#FFFBEB":"white"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:40,height:40,borderRadius:10,background:tc.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:tc.color}}>{r.type}</div>
+                <div>
+                  <p style={{fontSize:13,fontWeight:600,color:"var(--bn-text)"}}>{r.name}</p>
+                  <p style={{fontSize:11,color:"var(--bn-muted)",marginTop:2}}>{r.date} · {r.size}</p>
+                </div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                {r.status==="Nouveau"&&<span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:99,background:"#FEF3C7",color:"#92400E"}}>Nouveau</span>}
+                <button style={{fontSize:12,fontWeight:600,padding:"7px 16px",borderRadius:8,background:"linear-gradient(135deg,#1A6FD4,#0284C7)",color:"white",border:"none",cursor:"pointer"}}>
+                  Télécharger
+                </button>
+              </div>
+            </div>);
+          })}
         </div>
       </div>
     </div>
   );
 }
-

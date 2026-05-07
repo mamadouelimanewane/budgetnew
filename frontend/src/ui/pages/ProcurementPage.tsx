@@ -1,213 +1,64 @@
-import { useEffect, useState } from "react";
-import { apiFetch } from "../../lib/api";
-import { loadAuth } from "../../lib/storage";
 
-type Vendor = { id: number; name: string; tax_id: string; phone: string; email: string };
-type Commitment = {
-  id: number;
-  fiscal_year: number;
-  budget_plan_id: number;
-  budget_line_id: number;
-  org_unit: string;
-  vendor_id: number | null;
-  description: string;
-  amount_xof: number;
-  status: string;
+const commitments = [
+  {ref:"BC-2026-001",vendor:"SENELEC",desc:"Fourniture électricité bureaux",amount:45000000,status:"Liquidé",date:"2026-01-15"},
+  {ref:"BC-2026-002",vendor:"SONES",desc:"Eau potable immeubles administratifs",amount:28500000,status:"Liquidé",date:"2026-01-22"},
+  {ref:"BC-2026-003",vendor:"SONATEL",desc:"Abonnements téléphonie & internet",amount:12750000,status:"En cours",date:"2026-02-03"},
+  {ref:"BC-2026-004",vendor:"GIE GAINDE 2000",desc:"Maintenance informatique parc",amount:95000000,status:"En attente",date:"2026-02-18"},
+  {ref:"BC-2026-005",vendor:"SAGAM Sécurité",desc:"Gardiennage annuel complexe admin",amount:850000000,status:"Anomalie IA",date:"2026-03-01"},
+  {ref:"BC-2026-006",vendor:"Imprimerie SN",desc:"Documents administratifs officiels",amount:8200000,status:"Liquidé",date:"2026-03-14"},
+  {ref:"BC-2026-007",vendor:"Bureau Veritas",desc:"Audit technique équipements",amount:22000000,status:"En cours",date:"2026-04-02"},
+];
+const ST: Record<string,{bg:string,color:string}> = {
+  "Liquidé":{bg:"#D1FAE5",color:"#065F46"},
+  "En cours":{bg:"#FEF3C7",color:"#92400E"},
+  "En attente":{bg:"#EDE9FE",color:"#4C1D95"},
+  "Anomalie IA":{bg:"#FEE2E2",color:"#991B1B"},
 };
-type Payment = { id: number; commitment_id: number; amount_xof: number; method: string; status: string };
-
-export function ProcurementPage() {
-  const token = loadAuth()?.token ?? "";
-  const [err, setErr] = useState<string | null>(null);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [commitments, setCommitments] = useState<Commitment[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-
-  const [vendorName, setVendorName] = useState("Fournisseur");
-
-  const [commitYear, setCommitYear] = useState(new Date().getFullYear());
-  const [planId, setPlanId] = useState<number>(1);
-  const [lineId, setLineId] = useState<number>(1);
-  const [orgUnit, setOrgUnit] = useState("DAF");
-  const [amount, setAmount] = useState(100000);
-  const [desc, setDesc] = useState("Achat");
-  const [vendorId, setVendorId] = useState<number | "">("");
-
-  const [payCommitId, setPayCommitId] = useState<number | "">("");
-  const [payAmount, setPayAmount] = useState(10000);
-  const [payMethod, setPayMethod] = useState("bank");
-
-  async function refresh() {
-    setErr(null);
-    const [v, c, p] = await Promise.all([
-      apiFetch<Vendor[]>("/procurement/vendors", { token }),
-      apiFetch<Commitment[]>("/procurement/commitments", { token }),
-      apiFetch<Payment[]>("/procurement/payments", { token }),
-    ]);
-    setVendors(v);
-    setCommitments(c);
-    setPayments(p);
-  }
-
-  useEffect(() => {
-    if (!token) return;
-    refresh().catch((e) => setErr(e instanceof Error ? e.message : "Erreur"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  async function createVendor() {
-    await apiFetch("/procurement/vendors", { method: "POST", token, body: JSON.stringify({ name: vendorName, tax_id: "", phone: "", email: "" }) });
-    await refresh();
-  }
-
-  async function createCommitment() {
-    await apiFetch("/procurement/commitments", {
-      method: "POST",
-      token,
-      body: JSON.stringify({
-        fiscal_year: commitYear,
-        budget_plan_id: planId,
-        budget_line_id: lineId,
-        org_unit: orgUnit,
-        vendor_id: vendorId === "" ? null : vendorId,
-        description: desc,
-        amount_xof: amount,
-      }),
-    });
-    await refresh();
-  }
-
-  async function submit(id: number) {
-    await apiFetch(`/procurement/commitments/${id}/submit`, { method: "POST", token });
-    await refresh();
-  }
-
-  async function approve(id: number) {
-    await apiFetch(`/procurement/commitments/${id}/approve`, { method: "POST", token });
-    await refresh();
-  }
-
-  async function createPayment() {
-    if (payCommitId === "") return;
-    await apiFetch("/procurement/payments", {
-      method: "POST",
-      token,
-      body: JSON.stringify({ commitment_id: payCommitId, amount_xof: payAmount, method: payMethod }),
-    });
-    await refresh();
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-lg font-semibold">Achats & Paiements</div>
-        <div className="text-sm text-slate-500">Fournisseurs, engagements, paiements + workflow submit/approve.</div>
+function fmt(n:number){return(n/1000000).toLocaleString("fr-SN",{maximumFractionDigits:1})+" M FCFA";}
+export function ProcurementPage(){
+  const total=commitments.reduce((s,c)=>s+c.amount,0);
+  const liquide=commitments.filter(c=>c.status==="Liquidé").reduce((s,c)=>s+c.amount,0);
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <div><h1 style={{fontSize:22,fontWeight:700,color:"var(--bn-text)",margin:0}}>Achats & Paiements</h1>
+      <p style={{fontSize:13,color:"var(--bn-muted)",marginTop:4}}>Cycle complet : Engagement → Bon de commande → Liquidation</p></div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+        {[
+          {label:"Total engagé",value:fmt(total),color:"#1A6FD4",bg:"#EBF4FF"},
+          {label:"Liquidé",value:fmt(liquide),color:"#10B981",bg:"#D1FAE5"},
+          {label:"En cours",value:fmt(total-liquide),color:"#F59E0B",bg:"#FEF3C7"},
+          {label:"Anomalies IA",value:"1",color:"#EF4444",bg:"#FEE2E2"},
+        ].map(m=>(
+          <div key={m.label} style={{background:m.bg,borderRadius:12,padding:"14px 16px"}}>
+            <p style={{fontSize:11,color:m.color,marginBottom:4}}>{m.label}</p>
+            <p style={{fontSize:16,fontWeight:700,color:m.color}}>{m.value}</p>
+          </div>
+        ))}
       </div>
-      {err ? <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div> : null}
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Fournisseur</div>
-          <div className="mt-2 space-y-2">
-            <input className="w-full rounded border px-3 py-2 text-sm" value={vendorName} onChange={(e) => setVendorName(e.target.value)} />
-            <button className="w-full rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createVendor}>
-              Ajouter
-            </button>
-          </div>
-        </div>
-
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Engagement</div>
-          <div className="mt-2 grid gap-2">
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={commitYear} onChange={(e) => setCommitYear(parseInt(e.target.value || "2026", 10))} />
-            <div className="grid grid-cols-2 gap-2">
-              <input className="rounded border px-3 py-2 text-sm" type="number" value={planId} onChange={(e) => setPlanId(parseInt(e.target.value || "1", 10))} placeholder="budget_plan_id" />
-              <input className="rounded border px-3 py-2 text-sm" type="number" value={lineId} onChange={(e) => setLineId(parseInt(e.target.value || "1", 10))} placeholder="budget_line_id" />
-            </div>
-            <input className="rounded border px-3 py-2 text-sm" value={orgUnit} onChange={(e) => setOrgUnit(e.target.value)} />
-            <select className="rounded border px-3 py-2 text-sm" value={vendorId} onChange={(e) => setVendorId(e.target.value ? parseInt(e.target.value, 10) : "")}>
-              <option value="">(sans fournisseur)</option>
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
-            <input className="rounded border px-3 py-2 text-sm" value={desc} onChange={(e) => setDesc(e.target.value)} />
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0", 10))} />
-            <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createCommitment}>
-              Créer
-            </button>
-          </div>
-        </div>
-
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Paiement</div>
-          <div className="mt-2 grid gap-2">
-            <select className="rounded border px-3 py-2 text-sm" value={payCommitId} onChange={(e) => setPayCommitId(e.target.value ? parseInt(e.target.value, 10) : "")}>
-              <option value="">Choisir engagement</option>
-              {commitments.map((c) => (
-                <option key={c.id} value={c.id}>
-                  #{c.id} — {c.status} — {c.amount_xof.toLocaleString("fr-FR")} XOF
-                </option>
-              ))}
-            </select>
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={payAmount} onChange={(e) => setPayAmount(parseInt(e.target.value || "0", 10))} />
-            <select className="rounded border px-3 py-2 text-sm" value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
-              <option value="bank">Banque</option>
-              <option value="mobile">Mobile</option>
-            </select>
-            <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createPayment}>
-              Payer
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-lg border p-3">
-        <div className="text-sm font-semibold">Engagements</div>
-        <div className="mt-2 overflow-auto">
-          <table className="min-w-full text-sm">
-            <thead className="text-left text-slate-500">
-              <tr>
-                <th className="py-2 pr-3">ID</th>
-                <th className="py-2 pr-3">Org</th>
-                <th className="py-2 pr-3">Montant</th>
-                <th className="py-2 pr-3">Statut</th>
-                <th className="py-2 pr-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {commitments.map((c) => (
-                <tr key={c.id} className="border-t">
-                  <td className="py-2 pr-3">#{c.id}</td>
-                  <td className="py-2 pr-3">{c.org_unit}</td>
-                  <td className="py-2 pr-3">{c.amount_xof.toLocaleString("fr-FR")} XOF</td>
-                  <td className="py-2 pr-3">{c.status}</td>
-                  <td className="py-2 pr-3">
-                    <div className="flex gap-2">
-                      <button className="rounded border px-2 py-1 text-xs" onClick={() => submit(c.id)}>
-                        Submit
-                      </button>
-                      <button className="rounded border px-2 py-1 text-xs" onClick={() => approve(c.id)}>
-                        Approve
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!commitments.length ? (
-                <tr>
-                  <td className="py-3 text-slate-500" colSpan={5}>
-                    Aucun engagement
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
+      <div style={{background:"white",borderRadius:16,padding:24,border:"1px solid var(--bn-border)"}}>
+        <p style={{fontSize:15,fontWeight:600,marginBottom:16}}>Bons de commande 2026</p>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead><tr style={{background:"#F8FAFC"}}>
+            {["Référence","Fournisseur","Description","Montant","Date","Statut"].map(h=>(
+              <th key={h} style={{textAlign:"left",padding:"10px 12px",fontSize:11,fontWeight:600,color:"var(--bn-muted)",borderBottom:"1px solid var(--bn-border)",textTransform:"uppercase",letterSpacing:"0.05em"}}>{h}</th>
+            ))}
+          </tr></thead>
+          <tbody>
+            {commitments.map((c,i)=>{
+              const s=ST[c.status]||{bg:"#F1F5F9",color:"#475569"};
+              return(
+              <tr key={c.ref} style={{background:i%2===0?"white":"#FAFBFD",borderBottom:"1px solid #F1F5F9"}}>
+                <td style={{padding:"11px 12px",fontSize:12,fontWeight:600,color:"#1A6FD4"}}>{c.ref}</td>
+                <td style={{padding:"11px 12px",fontSize:13,fontWeight:500}}>{c.vendor}</td>
+                <td style={{padding:"11px 12px",fontSize:12,color:"var(--bn-muted)",maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.desc}</td>
+                <td style={{padding:"11px 12px",fontSize:13,fontWeight:600}}>{fmt(c.amount)}</td>
+                <td style={{padding:"11px 12px",fontSize:11,color:"var(--bn-muted)"}}>{c.date}</td>
+                <td style={{padding:"11px 12px"}}><span style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:99,background:s.bg,color:s.color}}>{c.status}</span></td>
+              </tr>);
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
-

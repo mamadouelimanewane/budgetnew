@@ -1,84 +1,59 @@
-import { useState } from "react";
-import { apiFetch } from "../../lib/api";
-import { loadAuth } from "../../lib/storage";
 
-export function AdminPage() {
-  const token = loadAuth()?.token ?? "";
-  const [err, setErr] = useState<string | null>(null);
-  const [roles, setRoles] = useState<any>(null);
-  const [roleName, setRoleName] = useState("analyst");
-  const [roleDesc, setRoleDesc] = useState("Analyste");
-
-  const [delegationFrom, setDelegationFrom] = useState(1);
-  const [delegationTo, setDelegationTo] = useState(1);
-  const [limitXof, setLimitXof] = useState(500000);
-
-  async function listRoles() {
-    setErr(null);
-    const r = await apiFetch("/admin/roles", { token });
-    setRoles(r);
-  }
-
-  async function createRole() {
-    setErr(null);
-    await apiFetch("/admin/roles", { method: "POST", token, body: JSON.stringify({ name: roleName, description: roleDesc }) });
-    await listRoles();
-  }
-
-  async function createDelegation() {
-    setErr(null);
-    const now = new Date();
-    const starts = now.toISOString();
-    const ends = new Date(now.getTime() + 7 * 24 * 3600 * 1000).toISOString();
-    await apiFetch("/admin/delegations", {
-      method: "POST",
-      token,
-      body: JSON.stringify({ user_from_id: delegationFrom, user_to_id: delegationTo, limit_xof: limitXof, starts_at: starts, ends_at: ends }),
-    });
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-lg font-semibold">Admin (RBAC)</div>
-        <div className="text-sm text-slate-500">Création rôles et délégations (admin requis).</div>
+const users = [
+  {id:1,name:"Mamadou Diallo",email:"admin@budgetnew.sn",role:"Administrateur",active:true,last:"2026-05-07"},
+  {id:2,name:"Aïssatou Ndiaye",email:"ordo@budgetnew.sn",role:"Ordonnateur",active:true,last:"2026-05-06"},
+  {id:3,name:"Ibrahima Sow",email:"analyste@budgetnew.sn",role:"Analyste",active:true,last:"2026-05-05"},
+  {id:4,name:"Fatou Diop",email:"cpt@budgetnew.sn",role:"Comptable",active:true,last:"2026-05-04"},
+  {id:5,name:"Cheikh Gaye",email:"viewer@budgetnew.sn",role:"Lecteur",active:false,last:"2026-04-20"},
+];
+const ROLE_STYLE: Record<string,{bg:string,color:string}> = {
+  "Administrateur":{bg:"#FEE2E2",color:"#991B1B"},
+  "Ordonnateur":{bg:"#EBF4FF",color:"#1E40AF"},
+  "Analyste":{bg:"#EDE9FE",color:"#4C1D95"},
+  "Comptable":{bg:"#D1FAE5",color:"#065F46"},
+  "Lecteur":{bg:"#F1F5F9",color:"#475569"},
+};
+export function AdminPage(){
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+      <div><h1 style={{fontSize:22,fontWeight:700,color:"var(--bn-text)",margin:0}}>Administration RBAC</h1>
+      <p style={{fontSize:13,color:"var(--bn-muted)",marginTop:4}}>Gestion des utilisateurs et des rôles — 4 profils</p></div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+        {[
+          {label:"Utilisateurs actifs",value:"4",color:"#10B981",bg:"#D1FAE5"},
+          {label:"Administrateurs",value:"1",color:"#EF4444",bg:"#FEE2E2"},
+          {label:"Ordonnateurs",value:"1",color:"#1A6FD4",bg:"#EBF4FF"},
+          {label:"Délégations actives",value:"2",color:"#7C3AED",bg:"#EDE9FE"},
+        ].map(m=>(
+          <div key={m.label} style={{background:m.bg,borderRadius:12,padding:"14px 16px"}}>
+            <p style={{fontSize:11,color:m.color,marginBottom:4}}>{m.label}</p>
+            <p style={{fontSize:22,fontWeight:700,color:m.color}}>{m.value}</p>
+          </div>
+        ))}
       </div>
-      {err ? <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div> : null}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Rôles</div>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
-            <input className="rounded border px-3 py-2 text-sm" value={roleName} onChange={(e) => setRoleName(e.target.value)} />
-            <input className="rounded border px-3 py-2 text-sm md:col-span-2" value={roleDesc} onChange={(e) => setRoleDesc(e.target.value)} />
-            <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createRole}>
-              Créer
-            </button>
-            <button className="rounded border px-3 py-2 text-sm" onClick={listRoles}>
-              Lister
-            </button>
-          </div>
-          <pre className="mt-3 max-h-72 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">
-            {JSON.stringify(roles ?? { hint: "Lister les rôles" }, null, 2)}
-          </pre>
-        </div>
-
-        <div className="rounded-lg border p-3">
-          <div className="text-sm font-semibold">Délégation</div>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={delegationFrom} onChange={(e) => setDelegationFrom(parseInt(e.target.value || "1", 10))} />
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={delegationTo} onChange={(e) => setDelegationTo(parseInt(e.target.value || "1", 10))} />
-            <input className="rounded border px-3 py-2 text-sm" type="number" value={limitXof} onChange={(e) => setLimitXof(parseInt(e.target.value || "0", 10))} />
-            <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" onClick={createDelegation}>
-              Créer délégation (7 jours)
-            </button>
-          </div>
-          <div className="mt-2 text-xs text-slate-500">
-            Note: dans cette v1, la délégation est surtout utilisée pour le contrôle du plafond lors de l’approbation d’engagement.
-          </div>
-        </div>
+      <div style={{background:"white",borderRadius:16,padding:24,border:"1px solid var(--bn-border)"}}>
+        <p style={{fontSize:15,fontWeight:600,marginBottom:16}}>Utilisateurs</p>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead><tr style={{background:"#F8FAFC"}}>
+            {["Nom","Email","Rôle","Statut","Dernière connexion"].map(h=>(
+              <th key={h} style={{textAlign:"left",padding:"10px 12px",fontSize:11,fontWeight:600,color:"var(--bn-muted)",borderBottom:"1px solid var(--bn-border)",textTransform:"uppercase",letterSpacing:"0.05em"}}>{h}</th>
+            ))}
+          </tr></thead>
+          <tbody>
+            {users.map((u,i)=>{
+              const rs=ROLE_STYLE[u.role]||{bg:"#F1F5F9",color:"#475569"};
+              return(
+              <tr key={u.id} style={{background:i%2===0?"white":"#FAFBFD",borderBottom:"1px solid #F1F5F9"}}>
+                <td style={{padding:"12px",fontSize:13,fontWeight:600}}>{u.name}</td>
+                <td style={{padding:"12px",fontSize:12,color:"#1A6FD4"}}>{u.email}</td>
+                <td style={{padding:"12px"}}><span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:99,background:rs.bg,color:rs.color}}>{u.role}</span></td>
+                <td style={{padding:"12px"}}><span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:99,background:u.active?"#D1FAE5":"#F1F5F9",color:u.active?"#065F46":"#94A3B8"}}>{u.active?"Actif":"Inactif"}</span></td>
+                <td style={{padding:"12px",fontSize:11,color:"var(--bn-muted)"}}>{u.last}</td>
+              </tr>);
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
-
