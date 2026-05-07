@@ -1,3 +1,4 @@
+import { useState } from "react";
 
 type Feature = { label: string; b1: boolean|string; bn: boolean|string; category: string };
 
