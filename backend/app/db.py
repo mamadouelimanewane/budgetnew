@@ -8,13 +8,13 @@ class Base(DeclarativeBase):
     pass
 
 
-engine = create_engine(settings.database_url, pool_pre_ping=True)
+# SQLite needs connect_args, PostgreSQL does not
+connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+engine = create_engine(settings.database_url, pool_pre_ping=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
 def init_db() -> None:
-    # MVP: create tables automatically. Alembic migrations can replace this in production.
     from app import models  # noqa: F401
-
+    from app import models_premium  # noqa: F401
     Base.metadata.create_all(bind=engine)
-

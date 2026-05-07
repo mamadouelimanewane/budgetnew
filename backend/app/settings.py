@@ -4,13 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_env: str = "dev"
-    database_url: str
+    app_env: str = "production"
+    database_url: str = "sqlite:///./budgetnew.db"
 
-    jwt_secret: str
-    jwt_issuer: str = "budget1"
-    cors_origins: str = "http://localhost:5173"
+    jwt_secret: str = "budgetnew-change-in-production-2026"
+    jwt_issuer: str = "budgetnew"
+    cors_origins: str = "https://budgetnew.vercel.app,http://localhost:5173"
 
 
 settings = Settings()
-
