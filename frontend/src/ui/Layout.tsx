@@ -1,81 +1,145 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-function navClass({ isActive }: { isActive: boolean }) {
-  return [
-    "block rounded px-3 py-2 text-sm",
-    isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100",
-  ].join(" ");
-}
+type NavItem = { to: string; label: string; icon: string; premium?: boolean };
 
-function NavSection({ title }: { title: string }) {
-  return (
-    <div className="px-3 pt-4 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-      {title}
-    </div>
-  );
-}
+const NAV_STANDARD: NavItem[] = [
+  { to: "/dashboard",   label: "Tableau de bord",    icon: "◩" },
+  { to: "/budget",      label: "Budget",              icon: "◈" },
+  { to: "/procurement", label: "Achats & Paiements",  icon: "◎" },
+  { to: "/revenue",     label: "Recettes",            icon: "◉" },
+  { to: "/exports",     label: "Exports & Rapports",  icon: "◫" },
+  { to: "/audit",       label: "Audit",               icon: "◬" },
+  { to: "/ai",          label: "IA Forecasting",      icon: "◭" },
+  { to: "/admin",       label: "Admin RBAC",          icon: "◮" },
+];
+
+const NAV_PREMIUM: NavItem[] = [
+  { to: "/dcmp",       label: "Marchés DCMP",         icon: "✦", premium: true },
+  { to: "/simulation", label: "Simulation What-If",   icon: "✦", premium: true },
+  { to: "/alerts",     label: "Alertes Intelligentes",icon: "✦", premium: true },
+  { to: "/license",    label: "Plans & Licence",      icon: "✦", premium: true },
+];
 
 export function Layout() {
   const { i18n } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b bg-white sticky top-0 z-10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 p-3 px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-lg font-bold text-slate-900">Budget</span>
-            <span className="rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-bold text-white">NEW</span>
-            <span className="ml-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">PREMIUM</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-              MODE DÉMO
-            </span>
-            <select
-              className="rounded border px-2 py-1 text-sm"
-              value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
-            >
-              <option value="fr">Français</option>
-              <option value="wo">Wolof</option>
-              <option value="en">English</option>
-            </select>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bn-bg)" }}>
+      {/* ── Sidebar ── */}
+      <aside style={{
+        width: 240, minHeight: "100vh", background: "var(--bn-sidebar)",
+        display: "flex", flexDirection: "column", flexShrink: 0,
+        position: "sticky", top: 0, height: "100vh", overflowY: "auto",
+      }}>
+        {/* Logo */}
+        <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "linear-gradient(135deg,#1A6FD4,#0E9E8A)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 16, fontWeight: 700, color: "white",
+            }}>B</div>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "white", lineHeight: 1 }}>BudgetNew</p>
+              <p style={{ fontSize: 10, color: "#94A3B8", marginTop: 2 }}>Sénégal & UEMOA</p>
+            </div>
+          </div>
+          <div style={{
+            marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(16,185,129,0.15)", borderRadius: 99,
+            padding: "3px 10px",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", display: "inline-block" }}></span>
+            <span style={{ fontSize: 10, color: "#10B981", fontWeight: 600 }}>MODE DÉMO</span>
           </div>
         </div>
-      </header>
 
-      <div className="mx-auto grid max-w-7xl gap-4 p-4 md:grid-cols-[220px_1fr]">
-        <aside className="rounded-lg border bg-white p-2 h-fit sticky top-16">
-          <nav className="space-y-0.5">
-            <NavSection title="Standard" />
-            <NavLink to="/dashboard" className={navClass}>Dashboard</NavLink>
-            <NavLink to="/budget" className={navClass}>Budget</NavLink>
-            <NavLink to="/procurement" className={navClass}>Achats & Paiements</NavLink>
-            <NavLink to="/revenue" className={navClass}>Recettes</NavLink>
-            <NavLink to="/exports" className={navClass}>Exports & Rapports</NavLink>
-            <NavLink to="/audit" className={navClass}>Audit</NavLink>
-            <NavLink to="/ai" className={navClass}>IA Forecasting</NavLink>
-            <NavLink to="/admin" className={navClass}>Admin (RBAC)</NavLink>
-            <NavSection title="Premium ✦" />
-            <NavLink to="/dcmp" className={(p) => navClass(p) + " border-l-2 border-emerald-500 ml-1"}>
-              Marchés Publics DCMP
+        {/* Nav Standard */}
+        <nav style={{ padding: "12px 10px 0", flex: 1 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: "#475569", padding: "0 10px 6px",
+                       textTransform: "uppercase", letterSpacing: "0.08em" }}>Standard</p>
+          {NAV_STANDARD.map(item => (
+            <NavLink key={item.to} to={item.to} style={({ isActive }) => ({
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "9px 12px", borderRadius: 8, marginBottom: 2,
+              textDecoration: "none", fontSize: 13, fontWeight: 500, transition: "all 0.15s",
+              background: isActive ? "rgba(26,111,212,0.25)" : "transparent",
+              color: isActive ? "#7BC8FF" : "#94A3B8",
+              borderLeft: isActive ? "3px solid #1A6FD4" : "3px solid transparent",
+            })}>
+              <span style={{ fontSize: 14 }}>{item.icon}</span>
+              {item.label}
             </NavLink>
-            <NavLink to="/simulation" className={(p) => navClass(p) + " border-l-2 border-emerald-500 ml-1"}>
-              Simulation What-If
+          ))}
+
+          <p style={{ fontSize: 10, fontWeight: 600, color: "#475569", padding: "12px 10px 6px",
+                       textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Premium ✦
+          </p>
+          {NAV_PREMIUM.map(item => (
+            <NavLink key={item.to} to={item.to} style={({ isActive }) => ({
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "9px 12px", borderRadius: 8, marginBottom: 2,
+              textDecoration: "none", fontSize: 13, fontWeight: 500, transition: "all 0.15s",
+              background: isActive ? "rgba(124,58,237,0.25)" : "transparent",
+              color: isActive ? "#C4B5FD" : "#94A3B8",
+              borderLeft: isActive ? "3px solid #7C3AED" : "3px solid transparent",
+            })}>
+              <span style={{ fontSize: 11, color: "#F59E0B" }}>✦</span>
+              {item.label}
             </NavLink>
-            <NavLink to="/alerts" className={(p) => navClass(p) + " border-l-2 border-emerald-500 ml-1"}>
-              Alertes Intelligentes
-            </NavLink>
-            <NavLink to="/license" className={(p) => navClass(p) + " border-l-2 border-amber-400 ml-1"}>
-              Plans & Licence
-            </NavLink>
-          </nav>
-          <div className="mt-3 text-xs text-slate-400 px-3">
-            API: <code className="text-xs">{import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</code>
+          ))}
+        </nav>
+
+        {/* Language switcher at bottom */}
+        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <select value={i18n.language} onChange={e => i18n.changeLanguage(e.target.value)}
+            style={{ width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 12,
+                     background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+                     color: "#94A3B8", cursor: "pointer" }}>
+            <option value="fr">🇸🇳 Français</option>
+            <option value="wo">🇸🇳 Wolof</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Topbar */}
+        <header style={{
+          background: "white", borderBottom: "1px solid var(--bn-border)",
+          padding: "0 28px", height: 60, display: "flex", alignItems: "center",
+          justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10,
+          boxShadow: "var(--bn-shadow)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--bn-text)", lineHeight: 1 }}>
+                Suivi Budgétaire Intelligent
+              </p>
+              <p style={{ fontSize: 11, color: "var(--bn-muted)", marginTop: 2 }}>
+                Exercice fiscal 2026 — République du Sénégal
+              </p>
+            </div>
           </div>
-        </aside>
-        <main className="rounded-lg border bg-white p-5">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ textAlign: "right" }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "var(--bn-text)" }}>Admin Démo</p>
+              <p style={{ fontSize: 11, color: "var(--bn-muted)" }}>admin@budgetnew.sn</p>
+            </div>
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: "linear-gradient(135deg,#1A6FD4,#0E9E8A)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "white", fontSize: 13, fontWeight: 700,
+            }}>A</div>
+          </div>
+        </header>
+
+        <main style={{ flex: 1, padding: "28px", overflowY: "auto" }}>
           <Outlet />
         </main>
       </div>
