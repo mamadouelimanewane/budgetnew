@@ -1,6 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { clearAuth, loadAuth } from "../lib/storage";
 
 function navClass({ isActive }: { isActive: boolean }) {
   return [
@@ -18,9 +17,7 @@ function NavSection({ title }: { title: string }) {
 }
 
 export function Layout() {
-  const { t, i18n } = useTranslation();
-  const nav = useNavigate();
-  const auth = loadAuth();
+  const { i18n } = useTranslation();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -31,8 +28,10 @@ export function Layout() {
             <span className="rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-bold text-white">NEW</span>
             <span className="ml-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">PREMIUM</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500">{t("language")}</span>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+              MODE DÉMO
+            </span>
             <select
               className="rounded border px-2 py-1 text-sm"
               value={i18n.language}
@@ -42,18 +41,6 @@ export function Layout() {
               <option value="wo">Wolof</option>
               <option value="en">English</option>
             </select>
-            {auth ? (
-              <button
-                className="ml-2 rounded border px-3 py-1 text-sm"
-                onClick={() => { clearAuth(); nav("/login"); }}
-              >
-                Déconnexion
-              </button>
-            ) : (
-              <Link className="ml-2 rounded bg-slate-900 px-3 py-1 text-sm text-white" to="/login">
-                Connexion
-              </Link>
-            )}
           </div>
         </div>
       </header>
@@ -70,7 +57,6 @@ export function Layout() {
             <NavLink to="/audit" className={navClass}>Audit</NavLink>
             <NavLink to="/ai" className={navClass}>IA Forecasting</NavLink>
             <NavLink to="/admin" className={navClass}>Admin (RBAC)</NavLink>
-
             <NavSection title="Premium ✦" />
             <NavLink to="/dcmp" className={(p) => navClass(p) + " border-l-2 border-emerald-500 ml-1"}>
               Marchés Publics DCMP
@@ -89,7 +75,6 @@ export function Layout() {
             API: <code className="text-xs">{import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</code>
           </div>
         </aside>
-
         <main className="rounded-lg border bg-white p-5">
           <Outlet />
         </main>
