@@ -1,4 +1,6 @@
-import { sql } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.POSTGRES_URL!);
 
 export { sql };
 
@@ -10,8 +12,7 @@ export async function initDB() {
       year INTEGER NOT NULL,
       total_amount BIGINT NOT NULL,
       status VARCHAR(50) DEFAULT 'Actif',
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP DEFAULT NOW()
     )
   `;
   await sql`
@@ -67,79 +68,62 @@ export async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     )
   `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS users_app (
-      id SERIAL PRIMARY KEY,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      role VARCHAR(50) DEFAULT 'Viewer',
-      direction_code VARCHAR(20),
-      active BOOLEAN DEFAULT TRUE,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `;
-  return { success: true, message: "Tables created" };
+  return { success: true, message: "6 tables creees" };
 }
 
 export async function seedData() {
-  const planRes = await sql`
+  await sql`
     INSERT INTO budget_plans (name, year, total_amount, status)
     VALUES ('Budget General 2026', 2026, 4500000000000, 'Actif')
-    ON CONFLICT DO NOTHING RETURNING id
+    ON CONFLICT DO NOTHING
   `;
-  const planId = planRes.rows[0]?.id ?? 1;
 
   const dirs = [
-    ['DGID',  'Direction Generale Impots et Domaines',     planId, 1200000000000, 748000000000,  'Normal'   ],
-    ['DGCPT', 'Direction Generale Comptabilite Publique',  planId, 980000000000,  921000000000,  'Alerte'   ],
-    ['DPEE',  'Direction Prevision Etudes Economiques',    planId, 650000000000,  310000000000,  'Normal'   ],
-    ['DAGE',  'Direction Administration Gestion Entretien',planId, 420000000000,  418000000000,  'Critique' ],
-    ['PRIM',  'Primature',                                 planId, 350000000000,  180000000000,  'Normal'   ],
-    ['DSI',   'Direction Systemes Information',            planId, 280000000000,  140000000000,  'Normal'   ],
-    ['DAF',   'Direction Affaires Financieres',            planId, 320000000000,  196000000000,  'Normal'   ],
-    ['DCMP',  'Direction Centrale Marches Publics',        planId, 200000000000,  88000000000,   'Normal'   ],
-    ['DGTCP', 'Direction Generale Tresor',                 planId, 100000000000,  56000000000,   'Normal'   ],
+    { code: 'DGID',  name: 'Direction Generale Impots et Domaines',      alloc: 1200000000000, cons: 748000000000,  status: 'Normal'   },
+    { code: 'DGCPT', name: 'Direction Generale Comptabilite Publique',    alloc: 980000000000,  cons: 921000000000,  status: 'Alerte'   },
+    { code: 'DPEE',  name: 'Direction Prevision Etudes Economiques',      alloc: 650000000000,  cons: 310000000000,  status: 'Normal'   },
+    { code: 'DAGE',  name: 'Direction Administration Gestion Entretien',  alloc: 420000000000,  cons: 418000000000,  status: 'Critique' },
+    { code: 'PRIM',  name: 'Primature',                                   alloc: 350000000000,  cons: 180000000000,  status: 'Normal'   },
+    { code: 'DSI',   name: 'Direction Systemes Information',              alloc: 280000000000,  cons: 140000000000,  status: 'Normal'   },
+    { code: 'DAF',   name: 'Direction Affaires Financieres',              alloc: 320000000000,  cons: 196000000000,  status: 'Normal'   },
+    { code: 'DCMP',  name: 'Direction Centrale Marches Publics',          alloc: 200000000000,  cons: 88000000000,   status: 'Normal'   },
+    { code: 'DGTCP', name: 'Direction Generale Tresor',                   alloc: 100000000000,  cons: 56000000000,   status: 'Normal'   },
   ];
 
-  for (const [code, name, pid, alloc, cons, status] of dirs) {
+  for (const d of dirs) {
     await sql`
       INSERT INTO directions (code, name, budget_plan_id, allocated, consumed, status)
-      VALUES (${code as string}, ${name as string}, ${pid as number}, ${alloc as number}, ${cons as number}, ${status as string})
+      VALUES (${d.code}, ${d.name}, 1, ${d.alloc}, ${d.cons}, ${d.status})
       ON CONFLICT (code) DO UPDATE SET consumed = EXCLUDED.consumed, status = EXCLUDED.status
     `;
   }
 
   const engs = [
-    ['BC-2026-001','SENELEC',          '001001234-2026-A-1', 45000000000,  'Fourniture electricite', 'DAF',  'Service', 'Liquide',   0.02],
-    ['BC-2026-002','SONES',            '001005678-2026-A-1', 28500000000,  'Fourniture eau potable', 'DAF',  'Service', 'Liquide',   0.03],
-    ['BC-2026-003','SONATEL',          '001009012-2026-B-2', 12750000000,  'Telephonie fixe mobile', 'DSI',  'Service', 'En cours',  0.08],
-    ['BC-2026-004','GIE GAINDE 2000',  '001003456-2024-A-1', 95000000000,  'Systeme gestion archives','DSI', 'Service', 'En attente',0.31],
-    ['BC-2026-005','SAGAM Securite',   '001007890-2025-B-1', 850000000000, 'Gardiennage securite',   'DAGE', 'Service', 'Suspendu',  0.87],
-    ['BC-2025-089','Prestataire X',    '001002222-2025-C-3', 420000000000, 'Conseil en strategie',   'DPEE', 'Service', 'En cours',  0.62],
-    ['BC-2026-006','Bureau Veritas',   '001002345-2026-A-1', 22000000000,  'Audit technique',        'DAF',  'Service', 'Liquide',   0.04],
+    { ref: 'BC-2026-001', vendor: 'SENELEC',         ninea: '001001234-2026-A-1', amount: 45000000000,  desc: 'Fourniture electricite', dir: 'DAF',  status: 'Liquide',   score: 0.02 },
+    { ref: 'BC-2026-002', vendor: 'SONES',            ninea: '001005678-2026-A-1', amount: 28500000000,  desc: 'Fourniture eau potable', dir: 'DAF',  status: 'Liquide',   score: 0.03 },
+    { ref: 'BC-2026-003', vendor: 'SONATEL',          ninea: '001009012-2026-B-2', amount: 12750000000,  desc: 'Telephonie fixe mobile', dir: 'DSI',  status: 'En cours',  score: 0.08 },
+    { ref: 'BC-2026-004', vendor: 'GIE GAINDE 2000',  ninea: '001003456-2024-A-1', amount: 95000000000,  desc: 'Systeme archives',       dir: 'DSI',  status: 'En attente',score: 0.31 },
+    { ref: 'BC-2026-005', vendor: 'SAGAM Securite',   ninea: '001007890-2025-B-1', amount: 850000000000, desc: 'Gardiennage securite',   dir: 'DAGE', status: 'Suspendu',  score: 0.87 },
+    { ref: 'BC-2025-089', vendor: 'Prestataire X',    ninea: '001002222-2025-C-3', amount: 420000000000, desc: 'Conseil strategie',      dir: 'DPEE', status: 'En cours',  score: 0.62 },
+    { ref: 'BC-2026-006', vendor: 'Bureau Veritas',   ninea: '001002345-2026-A-1', amount: 22000000000,  desc: 'Audit technique',        dir: 'DAF',  status: 'Liquide',   score: 0.04 },
   ];
 
-  for (const [ref, vendor, ninea, amount, desc, dir, type, status, score] of engs) {
+  for (const e of engs) {
     await sql`
-      INSERT INTO engagements (reference, vendor_name, vendor_ninea, amount, description, direction_code, type, status, anomaly_score)
-      VALUES (${ref as string}, ${vendor as string}, ${ninea as string}, ${amount as number}, ${desc as string}, ${dir as string}, ${type as string}, ${status as string}, ${score as number})
+      INSERT INTO engagements (reference, vendor_name, vendor_ninea, amount, description, direction_code, status, anomaly_score)
+      VALUES (${e.ref}, ${e.vendor}, ${e.ninea}, ${e.amount}, ${e.desc}, ${e.dir}, ${e.status}, ${e.score})
       ON CONFLICT (reference) DO NOTHING
     `;
   }
 
-  const alerts_data = [
-    ['alerte', 'DGCPT a 94% de consommation', 'Risque depassement avant fin juin. Action requise.', 'DGCPT', 'warning'],
-    ['anomalie', 'Anomalie BC-2026-005 detectee', 'SAGAM Securite 850M FCFA score 0.87. Verification recommandee.', 'DAGE', 'danger'],
-    ['alerte', 'DAGE quasi epuisee 99.5%', 'Seulement 2M restants. Nouveaux engagements bloques.', 'DAGE', 'danger'],
-    ['info', 'Rapport avril 2026 genere', 'Disponible en PDF et XLSX dans Exports.', null, 'info'],
-  ];
+  await sql`
+    INSERT INTO alerts (type, title, body, direction_code, severity) VALUES
+    ('alerte',  'DGCPT a 94pct de consommation',  'Risque depassement avant fin juin.',        'DGCPT', 'warning'),
+    ('anomalie','Anomalie BC-2026-005 detectee',   'SAGAM 850M score 0.87. A verifier.',         'DAGE',  'danger'),
+    ('alerte',  'DAGE quasi epuisee 99.5pct',      'Seulement 2M restants. Engagements bloques.','DAGE',  'danger'),
+    ('info',    'Rapport avril 2026 genere',        'Disponible dans Exports.',                   null,    'info')
+    ON CONFLICT DO NOTHING
+  `;
 
-  for (const [type, title, body, dir, sev] of alerts_data) {
-    await sql`
-      INSERT INTO alerts (type, title, body, direction_code, severity)
-      VALUES (${type as string}, ${title as string}, ${body as string}, ${dir as string | null}, ${sev as string})
-    `;
-  }
-
-  return { success: true, message: "Seed complete: 9 directions, 7 engagements, 4 alertes" };
+  return { success: true, message: "9 directions + 7 engagements + 4 alertes inseres" };
 }
