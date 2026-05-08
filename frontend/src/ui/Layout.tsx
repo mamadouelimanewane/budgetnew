@@ -12,15 +12,15 @@ const NAV: { section: string; color?: string; items: NavItem[] }[] = [
     {to:"/audit",        label:"Audit"},
     {to:"/ai",           label:"IA Forecasting"},
     {to:"/admin",        label:"Admin RBAC"},
-    {to:"/users",        label:"Utilisateurs",  tag:"NEW"},
+    {to:"/saisie", label:"Saisie et Formulaires", tag:"NEW"},{to:"/users",        label:"Utilisateurs",  tag:"NEW"},
   ]},
-  { section:"Premium ✦", color:"#7C3AED", items:[
-    {to:"/executive",    label:"Dashboard Exécutif", tag:"P1"},
+  { section:"Premium âœ¦", color:"#7C3AED", items:[
+    {to:"/executive",    label:"Dashboard ExÃ©cutif", tag:"P1"},
     {to:"/chatbot",      label:"Assistant IA",        tag:"P1"},
     {to:"/fraude",       label:"Anti-fraude IA",      tag:"P1"},
     {to:"/tofe",         label:"TOFE BCEAO",          tag:"P1"},
     {to:"/notifications",label:"Notifications",       tag:"P1"},
-    {to:"/dcmp",         label:"Marchés DCMP"},
+    {to:"/dcmp",         label:"MarchÃ©s DCMP"},
     {to:"/simulation",   label:"Simulation What-If"},
     {to:"/workflow",     label:"Workflows"},
     {to:"/portail",      label:"Portail Fournisseurs"},
@@ -41,12 +41,12 @@ export function Layout() {
             <div style={{width:34,height:34,borderRadius:9,background:"linear-gradient(135deg,#1A6FD4,#0E9E8A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,color:"white"}}>B</div>
             <div>
               <p style={{fontSize:14,fontWeight:700,color:"white",lineHeight:1}}>BudgetNew</p>
-              <p style={{fontSize:9,color:"#94A3B8",marginTop:1}}>Sénégal & UEMOA v2.0</p>
+              <p style={{fontSize:9,color:"#94A3B8",marginTop:1}}>SÃ©nÃ©gal & UEMOA v2.0</p>
             </div>
           </div>
           <div style={{marginTop:10,display:"inline-flex",alignItems:"center",gap:5,background:"rgba(16,185,129,0.15)",borderRadius:99,padding:"2px 8px"}}>
             <span style={{width:5,height:5,borderRadius:"50%",background:"#10B981",display:"inline-block"}}/>
-            <span style={{fontSize:9,color:"#10B981",fontWeight:600}}>MODE DÉMO — 23 modules</span>
+            <span style={{fontSize:9,color:"#10B981",fontWeight:600}}>MODE DÃ‰MO â€” 23 modules</span>
           </div>
         </div>
         <nav style={{padding:"8px 8px 0",flex:1}}>
@@ -71,21 +71,21 @@ export function Layout() {
         <div style={{padding:"10px 12px",borderTop:"1px solid rgba(255,255,255,0.07)"}}>
           <select value={i18n.language} onChange={e=>i18n.changeLanguage(e.target.value)}
             style={{width:"100%",padding:"5px 8px",borderRadius:6,fontSize:11,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#94A3B8",cursor:"pointer"}}>
-            <option value="fr">🇸🇳 Français</option>
-            <option value="wo">🇸🇳 Wolof</option>
-            <option value="en">🇬🇧 English</option>
+            <option value="fr">ðŸ‡¸ðŸ‡³ FranÃ§ais</option>
+            <option value="wo">ðŸ‡¸ðŸ‡³ Wolof</option>
+            <option value="en">ðŸ‡¬ðŸ‡§ English</option>
           </select>
         </div>
       </aside>
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
         <header style={{background:"white",borderBottom:"1px solid var(--bn-border)",padding:"0 24px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:10,boxShadow:"var(--bn-shadow)"}}>
           <div>
-            <p style={{fontSize:13,fontWeight:600,color:"var(--bn-text)",lineHeight:1}}>Suivi Budgétaire Intelligent</p>
-            <p style={{fontSize:10,color:"var(--bn-muted)",marginTop:1}}>Exercice fiscal 2026 — République du Sénégal</p>
+            <p style={{fontSize:13,fontWeight:600,color:"var(--bn-text)",lineHeight:1}}>Suivi BudgÃ©taire Intelligent</p>
+            <p style={{fontSize:10,color:"var(--bn-muted)",marginTop:1}}>Exercice fiscal 2026 â€” RÃ©publique du SÃ©nÃ©gal</p>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{textAlign:"right"}}>
-              <p style={{fontSize:11,fontWeight:600,color:"var(--bn-text)"}}>Admin Démo</p>
+              <p style={{fontSize:11,fontWeight:600,color:"var(--bn-text)"}}>Admin DÃ©mo</p>
               <p style={{fontSize:10,color:"var(--bn-muted)"}}>admin@budgetnew.sn</p>
             </div>
             <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#1A6FD4,#0E9E8A)",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:12,fontWeight:700}}>AD</div>

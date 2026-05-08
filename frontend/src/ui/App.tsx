@@ -14,7 +14,7 @@ import { DcmpPage } from "./pages/DcmpPage";
 import { SimulationPage } from "./pages/SimulationPage";
 import { AlertsPage } from "./pages/AlertsPage";
 import { LicensePage } from "./pages/LicensePage";
-import { ComparePage } from "./pages/ComparePage";
+import { BudgetFormPage } from "./pages/BudgetFormPage";`nimport { ComparePage } from "./pages/ComparePage";
 import { ChatbotPage } from "./pages/ChatbotPage";
 import { ExecutivePage } from "./pages/ExecutivePage";
 import { PortailPage } from "./pages/PortailPage";
@@ -44,7 +44,7 @@ export function App() {
           <Route path="/simulation"     element={<SimulationPage />} />
           <Route path="/alerts"         element={<AlertsPage />} />
           <Route path="/license"        element={<LicensePage />} />
-          <Route path="/compare"        element={<ComparePage />} />
+          <Route path="/saisie" element={<BudgetFormPage />} />`n          <Route path="/compare"        element={<ComparePage />} />
           <Route path="/chatbot"        element={<ChatbotPage />} />
           <Route path="/executive"      element={<ExecutivePage />} />
           <Route path="/portail"        element={<PortailPage />} />
