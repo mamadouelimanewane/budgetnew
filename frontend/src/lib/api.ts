@@ -1,71 +1,44 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const BASE = "/api";
 
-export class ApiError extends Error {
-  status: number;
-  bodyText: string;
-  constructor(status: number, bodyText: string) {
-    super(`API ${status}: ${bodyText}`);
-    this.status = status;
-    this.bodyText = bodyText;
-  }
-}
-
-export async function apiFetch<T>(
-  path: string,
-  opts: RequestInit & { token?: string } = {}
-): Promise<T> {
-  const url = `${API_BASE}${path}`;
-  const headers = new Headers(opts.headers ?? {});
-  if (!headers.has("Content-Type") && opts.body) {
-    headers.set("Content-Type", "application/json");
-  }
-  if (opts.token) headers.set("Authorization", `Bearer ${opts.token}`);
-
-  const res = await fetch(url, { ...opts, headers });
-  const text = await res.text();
-  if (!res.ok) throw new ApiError(res.status, text);
-  if (!text) return undefined as T;
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return text as T;
-  }
-}
-
-export async function login(email: string, password: string): Promise<{ access_token: string }> {
-  const form = new URLSearchParams();
-  form.set("username", email);
-  form.set("password", password);
-  const res = await fetch(`${API_BASE}/auth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form,
+async function request(path: string, options?: RequestInit) {
+  const res = await fetch(BASE + path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
   });
-  const text = await res.text();
-  if (!res.ok) throw new ApiError(res.status, text);
-  return JSON.parse(text) as { access_token: string };
+  const data = await res.json();
+  if (!data.success && res.status >= 400) throw new Error(data.error || "API Error");
+  return data;
 }
 
-export async function loginMfa(
-  email: string,
-  password: string,
-  code: string
-): Promise<{ access_token: string }> {
-  const form = new URLSearchParams();
-  form.set("username", email);
-  form.set("password", password);
-  // backend: /auth/mfa/token uses OAuth2PasswordRequestForm + query param code
-  const res = await fetch(`${API_BASE}/auth/mfa/token?code=${encodeURIComponent(code)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form,
-  });
-  const text = await res.text();
-  if (!res.ok) throw new ApiError(res.status, text);
-  return JSON.parse(text) as { access_token: string };
-}
+export const api = {
+  budget: {
+    list: () => request("/budget"),
+    create: (body: object) => request("/budget", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => request("/budget", { method: "PUT", body: JSON.stringify(body) }),
+  },
+  directions: {
+    list: () => request("/directions"),
+    update: (body: object) => request("/directions", { method: "PUT", body: JSON.stringify(body) }),
+  },
+  engagements: {
+    list: (params?: Record<string,string>) => {
+      const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+      return request("/engagements" + qs);
+    },
+    create: (body: object) => request("/engagements", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => request("/engagements", { method: "PUT", body: JSON.stringify(body) }),
+    delete: (id: number) => request("/engagements", { method: "DELETE", body: JSON.stringify({ id }) }),
+  },
+  marches: {
+    list: () => request("/marches"),
+    create: (body: object) => request("/marches", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => request("/marches", { method: "PUT", body: JSON.stringify(body) }),
+  },
+  alerts: {
+    list: () => request("/alerts"),
+    markRead: (id: number | "all") => request("/alerts", { method: "PUT", body: JSON.stringify({ id }) }),
+  },
+  migrate: (secret: string) => request("/migrate", { method: "POST", body: JSON.stringify({ secret }) }),
+};
 
-export function apiBase() {
-  return API_BASE;
-}
-
+export type ApiResponse<T> = { success: boolean; data: T; error?: string };

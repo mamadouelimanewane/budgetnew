@@ -36,6 +36,7 @@ const NAV: { section: string; color?: string; items: NavItem[] }[] = [
     { to: "/multi-exercices", label: "Multi-Exercices", tag: "NEW" },
     { to: "/ocr", label: "Import OCR Factures", tag: "NEW" },
     { to: "/ong", label: "Gestion ONG/EP/Prive", tag: "NEW" },
+    { to: "/database", label: "Admin PostgreSQL", tag: "NEW" },
     { to: "/suivi-eval", label: "Suivi et Evaluation", tag: "NEW" },
   ]},
 ];
