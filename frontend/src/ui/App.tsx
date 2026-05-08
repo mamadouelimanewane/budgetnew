@@ -31,7 +31,7 @@ import { MultiExercicePage } from "./pages/MultiExercicePage";
 import { OcrPage } from "./pages/OcrPage";
 import { OngPage } from "./pages/OngPage";
 import { SuiviEvalPage } from "./pages/SuiviEvalPage";
-import { DatabasePage } from "./pages/DatabasePage" from "./pages/SuiviEvalPage";
+import { DatabasePage } from "./pages/DatabasePage";
 
 export function App() {
   return (

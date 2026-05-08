@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/migrate", "destination": "/api/migrate.js" },
+    { "source": "/api/budget", "destination": "/api/budget.js" },
+    { "source": "/api/directions", "destination": "/api/directions.js" },
+    { "source": "/api/engagements", "destination": "/api/engagements.js" },
+    { "source": "/api/alerts", "destination": "/api/alerts.js" },
+    { "source": "/api/(.*)", "destination": "/api/$1.js" },
+    { "source": "/(.*)", "destination": "/frontend/$1" }
+  ]
+}

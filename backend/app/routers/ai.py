@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -69,7 +69,7 @@ def train_forecast(
     model.fit(X, y)
 
     artifact = {
-        "trained_at": datetime.utcnow().isoformat(),
+        "trained_at": datetime.now(timezone.utc).isoformat(),
         "months_back": payload.months_back,
         "n_points": int(len(monthly)),
         "model": model,
@@ -155,7 +155,7 @@ def train_anomaly(
         raise HTTPException(status_code=400, detail="Not enough payments to train anomaly model (need >= 10)")
 
     def features(p: Payment) -> list[float]:
-        ts = p.created_at or datetime.utcnow()
+        ts = p.created_at or datetime.now(timezone.utc)
         return [
             float(p.amount_xof),
             float(ts.hour),
@@ -165,7 +165,7 @@ def train_anomaly(
     X = np.array([features(p) for p in rows], dtype=float)
     model = IsolationForest(n_estimators=200, contamination=payload.contamination, random_state=42)
     model.fit(X)
-    dump({"trained_at": datetime.utcnow().isoformat(), "model": model}, MODELS_DIR / "anomaly-payments.joblib")
+    dump({"trained_at": datetime.now(timezone.utc).isoformat(), "model": model}, MODELS_DIR / "anomaly-payments.joblib")
 
     append_audit_event(
         db=db,
@@ -205,7 +205,7 @@ def score_payments(
     rows = db.scalars(select(Payment).order_by(Payment.id.desc()).limit(limit)).all()
 
     def features(p: Payment) -> list[float]:
-        ts = p.created_at or datetime.utcnow()
+        ts = p.created_at or datetime.now(timezone.utc)
         return [float(p.amount_xof), float(ts.hour), float(ts.weekday())]
 
     X = np.array([features(p) for p in rows], dtype=float)
