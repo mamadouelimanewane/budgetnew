@@ -1,4 +1,11 @@
 {
+  "functions": {
+    "api/migrate.js": { "runtime": "nodejs20.x" },
+    "api/directions.js": { "runtime": "nodejs20.x" },
+    "api/engagements.js": { "runtime": "nodejs20.x" },
+    "api/alerts.js": { "runtime": "nodejs20.x" },
+    "api/budget.js": { "runtime": "nodejs20.x" }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
