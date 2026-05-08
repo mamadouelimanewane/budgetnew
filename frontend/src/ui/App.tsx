@@ -24,7 +24,11 @@ import { FraudePage } from "./pages/FraudePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { WorkflowPage } from "./pages/WorkflowPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
-
+import { CopilotePage } from "./pages/CopilotePage";
+import { CartePage } from "./pages/CartePage";
+import { CitoyenPage } from "./pages/CitoyenPage";
+import { MultiExercicePage } from "./pages/MultiExercicePage";
+import { OcrPage } from "./pages/OcrPage";
 export function App() {
   return (
     <BrowserRouter>
@@ -33,8 +37,8 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/budget" element={<BudgetPage />} />
           <Route path="/saisie" element={<BudgetFormPage />} />
+          <Route path="/budget" element={<BudgetPage />} />
           <Route path="/procurement" element={<ProcurementPage />} />
           <Route path="/revenue" element={<RevenuePage />} />
           <Route path="/exports" element={<ExportsPage />} />
@@ -55,6 +59,11 @@ export function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/workflow" element={<WorkflowPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/copilote" element={<CopilotePage />} />
+          <Route path="/carte" element={<CartePage />} />
+          <Route path="/citoyen" element={<CitoyenPage />} />
+          <Route path="/multi-exercices" element={<MultiExercicePage />} />
+          <Route path="/ocr" element={<OcrPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
