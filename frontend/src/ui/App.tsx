@@ -29,6 +29,9 @@ import { CartePage } from "./pages/CartePage";
 import { CitoyenPage } from "./pages/CitoyenPage";
 import { MultiExercicePage } from "./pages/MultiExercicePage";
 import { OcrPage } from "./pages/OcrPage";
+import { OngPage } from "./pages/OngPage";
+import { SuiviEvalPage } from "./pages/SuiviEvalPage";
+
 export function App() {
   return (
     <BrowserRouter>
@@ -64,6 +67,8 @@ export function App() {
           <Route path="/citoyen" element={<CitoyenPage />} />
           <Route path="/multi-exercices" element={<MultiExercicePage />} />
           <Route path="/ocr" element={<OcrPage />} />
+          <Route path="/ong" element={<OngPage />} />
+          <Route path="/suivi-eval" element={<SuiviEvalPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

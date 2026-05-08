@@ -35,6 +35,8 @@ const NAV: { section: string; color?: string; items: NavItem[] }[] = [
     { to: "/citoyen", label: "Portail Citoyen", tag: "NEW" },
     { to: "/multi-exercices", label: "Multi-Exercices", tag: "NEW" },
     { to: "/ocr", label: "Import OCR Factures", tag: "NEW" },
+    { to: "/ong", label: "Gestion ONG/EP/Prive", tag: "NEW" },
+    { to: "/suivi-eval", label: "Suivi et Evaluation", tag: "NEW" },
   ]},
 ];
 export function Layout() {
@@ -47,12 +49,12 @@ export function Layout() {
             <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#1A6FD4,#0E9E8A)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "white" }}>B</div>
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: "white", lineHeight: 1 }}>BudgetNew</p>
-              <p style={{ fontSize: 9, color: "#94A3B8", marginTop: 1 }}>Senegal et UEMOA v3.0 Elite</p>
+              <p style={{ fontSize: 9, color: "#94A3B8", marginTop: 1 }}>Senegal et UEMOA v3.1</p>
             </div>
           </div>
           <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(16,185,129,0.15)", borderRadius: 99, padding: "2px 8px" }}>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
-            <span style={{ fontSize: 9, color: "#10B981", fontWeight: 600 }}>DEMO - 29 modules</span>
+            <span style={{ fontSize: 9, color: "#10B981", fontWeight: 600 }}>DEMO - 31 modules</span>
           </div>
         </div>
         <nav style={{ padding: "8px 8px 0", flex: 1 }}>
@@ -69,9 +71,7 @@ export function Layout() {
                   borderLeft: isActive ? "2px solid " + (section.color || "#1A6FD4") : "2px solid transparent",
                 })}>
                   <span>{item.label}</span>
-                  {item.tag && (
-                    <span style={{ fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: item.tag === "P1" ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)", color: item.tag === "P1" ? "#FCA5A5" : "#6EE7B7", flexShrink: 0 }}>{item.tag}</span>
-                  )}
+                  {item.tag && <span style={{ fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: item.tag === "P1" ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)", color: item.tag === "P1" ? "#FCA5A5" : "#6EE7B7", flexShrink: 0 }}>{item.tag}</span>}
                 </NavLink>
               ))}
             </div>
@@ -90,7 +90,7 @@ export function Layout() {
         <header style={{ background: "white", borderBottom: "1px solid var(--bn-border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10, boxShadow: "var(--bn-shadow)" }}>
           <div>
             <p style={{ fontSize: 13, fontWeight: 600, color: "var(--bn-text)", lineHeight: 1 }}>Suivi Budgetaire Intelligent</p>
-            <p style={{ fontSize: 10, color: "var(--bn-muted)", marginTop: 1 }}>Exercice 2026 - Republique du Senegal - Elite v3.0</p>
+            <p style={{ fontSize: 10, color: "var(--bn-muted)", marginTop: 1 }}>Exercice 2026 - Senegal - Elite v3.1 - ONG / EP / Prive</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ textAlign: "right" }}>
