@@ -6,14 +6,15 @@ export interface ApiOptions extends RequestInit {
 
 export async function apiFetch<T = any>(path: string, options?: ApiOptions): Promise<T> {
   const { token, headers, ...rest } = options || {};
-  const authHeader = token ? { "Authorization": `Bearer ${token}` } : {};
+  
+  const combinedHeaders = new Headers(headers);
+  combinedHeaders.set("Content-Type", "application/json");
+  if (token) {
+    combinedHeaders.set("Authorization", `Bearer ${token}`);
+  }
 
   const res = await fetch(apiBase() + path, {
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeader,
-      ...headers
-    },
+    headers: combinedHeaders,
     ...rest,
   });
 
