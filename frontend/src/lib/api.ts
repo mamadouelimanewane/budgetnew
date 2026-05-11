@@ -1,6 +1,6 @@
 const BASE = "/api";
 
-async function request(path: string, options?: RequestInit) {
+export async function apiFetch(path: string, options?: RequestInit) {
   const res = await fetch(BASE + path, {
     headers: { "Content-Type": "application/json" },
     ...options,
@@ -12,33 +12,33 @@ async function request(path: string, options?: RequestInit) {
 
 export const api = {
   budget: {
-    list: () => request("/budget"),
-    create: (body: object) => request("/budget", { method: "POST", body: JSON.stringify(body) }),
-    update: (body: object) => request("/budget", { method: "PUT", body: JSON.stringify(body) }),
+    list: () => apiFetch("/budget"),
+    create: (body: object) => apiFetch("/budget", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => apiFetch("/budget", { method: "PUT", body: JSON.stringify(body) }),
   },
   directions: {
-    list: () => request("/directions"),
-    update: (body: object) => request("/directions", { method: "PUT", body: JSON.stringify(body) }),
+    list: () => apiFetch("/directions"),
+    update: (body: object) => apiFetch("/directions", { method: "PUT", body: JSON.stringify(body) }),
   },
   engagements: {
     list: (params?: Record<string,string>) => {
       const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-      return request("/engagements" + qs);
+      return apiFetch("/engagements" + qs);
     },
-    create: (body: object) => request("/engagements", { method: "POST", body: JSON.stringify(body) }),
-    update: (body: object) => request("/engagements", { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: number) => request("/engagements", { method: "DELETE", body: JSON.stringify({ id }) }),
+    create: (body: object) => apiFetch("/engagements", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => apiFetch("/engagements", { method: "PUT", body: JSON.stringify(body) }),
+    delete: (id: number) => apiFetch("/engagements", { method: "DELETE", body: JSON.stringify({ id }) }),
   },
   marches: {
-    list: () => request("/marches"),
-    create: (body: object) => request("/marches", { method: "POST", body: JSON.stringify(body) }),
-    update: (body: object) => request("/marches", { method: "PUT", body: JSON.stringify(body) }),
+    list: () => apiFetch("/marches"),
+    create: (body: object) => apiFetch("/marches", { method: "POST", body: JSON.stringify(body) }),
+    update: (body: object) => apiFetch("/marches", { method: "PUT", body: JSON.stringify(body) }),
   },
   alerts: {
-    list: () => request("/alerts"),
-    markRead: (id: number | "all") => request("/alerts", { method: "PUT", body: JSON.stringify({ id }) }),
+    list: () => apiFetch("/alerts"),
+    markRead: (id: number | "all") => apiFetch("/alerts", { method: "PUT", body: JSON.stringify({ id }) }),
   },
-  migrate: (secret: string) => request("/migrate", { method: "POST", body: JSON.stringify({ secret }) }),
+  migrate: (secret: string) => apiFetch("/migrate", { method: "POST", body: JSON.stringify({ secret }) }),
 };
 
 export type ApiResponse<T> = { success: boolean; data: T; error?: string };
