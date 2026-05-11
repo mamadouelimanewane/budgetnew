@@ -1,13 +1,34 @@
-const BASE = "/api";
+export const apiBase = () => "/api";
 
-export async function apiFetch(path: string, options?: RequestInit) {
-  const res = await fetch(BASE + path, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
+export interface ApiOptions extends RequestInit {
+  token?: string;
+}
+
+export async function apiFetch<T = any>(path: string, options?: ApiOptions): Promise<T> {
+  const { token, headers, ...rest } = options || {};
+  const authHeader = token ? { "Authorization": `Bearer ${token}` } : {};
+
+  const res = await fetch(apiBase() + path, {
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader,
+      ...headers
+    },
+    ...rest,
   });
+
   const data = await res.json();
-  if (!data.success && res.status >= 400) throw new Error(data.error || "API Error");
-  return data;
+
+  if (!res.ok || (data && data.success === false)) {
+    throw new Error(data?.error || data?.detail || `API Error (${res.status})`);
+  }
+
+  // If the response is wrapped in ApiResponse<T>, return the data part
+  if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+    return data.data as T;
+  }
+
+  return data as T;
 }
 
 export const api = {
